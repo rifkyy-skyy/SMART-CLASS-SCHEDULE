@@ -1,135 +1,165 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(KuliahKuApp());
+  runApp(const KuliahKuApp());
 }
 
 class KuliahKuApp extends StatelessWidget {
+  const KuliahKuApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'KULIAHKU',
+      title: 'KuliahKu',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
       ),
-      home: HomeScreen(),
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      themeMode: ThemeMode.system,
+      home: const HomePage(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
+class Jadwal {
+  final String matkul;
+  final String dosen;
+  final String jam;
+  final String ruangan;
+
+  Jadwal(this.matkul, this.dosen, this.jam, this.ruangan);
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<String> jadwal = [
-    "Pemrograman Mobile - 08:00",
-    "Struktur Data - 10:00",
-    "Basis Data - 13:00",
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late TabController tabController;
+
+  final List<String> hari = [
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat"
   ];
 
-  TextEditingController controller = TextEditingController();
+  final Map<String, List<Jadwal>> data = {
+    "Senin": [
+      Jadwal("Struktur Data", "Pak Ahmad", "08:00 - 10:00", "Lab 1"),
+      Jadwal("Mobile Programming", "Bu Rina", "10:00 - 12:00", "A2"),
+    ],
+    "Selasa": [
+      Jadwal("Kecerdasan Buatan", "Pak Yusuf", "09:00 - 11:00", "Lab AI"),
+    ],
+    "Rabu": [
+      Jadwal("Basis Data", "Pak Budi", "08:00 - 10:00", "Ruang 3"),
+    ],
+    "Kamis": [
+      Jadwal("UI/UX Design", "Bu Sari", "13:00 - 15:00", "Lab Design"),
+    ],
+    "Jumat": [
+      Jadwal("Pemrograman Web", "Pak Dedi", "08:00 - 10:00", "Lab Web"),
+    ],
+  };
 
-  void tambahJadwal() {
-    if (controller.text.isNotEmpty) {
-      setState(() {
-        jadwal.add(controller.text);
-        controller.clear();
-      });
-    }
-  }
-
-  void hapusJadwal(int index) {
-    setState(() {
-      jadwal.removeAt(index);
-    });
-  }
-
-  void editJadwal(int index) {
-    controller.text = jadwal[index];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Edit Jadwal"),
-        content: TextField(
-          controller: controller,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                jadwal[index] = controller.text;
-                controller.clear();
-              });
-              Navigator.pop(context);
-            },
-            child: Text("Simpan"),
-          )
-        ],
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(length: hari.length, vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("KULIAHKU"),
-        centerTitle: true,
+        title: const Text("KuliahKu"),
+        bottom: TabBar(
+          controller: tabController,
+          isScrollable: true,
+          tabs: hari.map((e) => Tab(text: e)).toList(),
+        ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                labelText: "Tambah Jadwal (contoh: Matkul - Jam)",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
 
-          ElevatedButton(
-            onPressed: tambahJadwal,
-            child: Text("Tambah"),
-          ),
+      body: TabBarView(
+        controller: tabController,
+        children: hari.map((h) {
+          final list = data[h]!;
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: jadwal.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.all(10),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: list.length,
+            itemBuilder: (context, i) {
+              final item = list[i];
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.indigo.shade400,
+                      Colors.indigo.shade700
+                    ],
                   ),
-                  child: ListTile(
-                    leading: Icon(Icons.schedule, color: Colors.blue),
-                    title: Text(jadwal[index]),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(2, 4),
+                    )
+                  ],
+                ),
+
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+
+                  title: Text(
+                    item.matkul,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.orange),
-                          onPressed: () => editJadwal(index),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => hapusJadwal(index),
-                        ),
+                        Text("Dosen: ${item.dosen}",
+                            style: const TextStyle(color: Colors.white70)),
+                        Text("Jam: ${item.jam}",
+                            style: const TextStyle(color: Colors.white70)),
+                        Text("Ruangan: ${item.ruangan}",
+                            style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+
+                  trailing: const Icon(
+                    Icons.schedule,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: const Icon(Icons.add),
       ),
     );
   }
